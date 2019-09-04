@@ -11,10 +11,15 @@ export default class TaskItem extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            switchStatus: null,
-            taskStatus: null,
-            disabled: null
+            taskItem:null    
         }
+    }
+    static getDerivedStateFromProps(nextProps,prevState) {
+        const {taskItem}=nextProps;
+        if (taskItem !== prevState.taskItem) {
+            return taskItem
+        }
+        return null
     }
     taskAction(taskItem, biologyInId) {
         if (taskItem.FINISH_STATE == 0) {
@@ -76,35 +81,23 @@ export default class TaskItem extends Component {
             default:
                 break;
         }
-    }
-    componentDidMount() {
-        const {taskItem} = this.props;
-        let status = taskItem.FINISH_STATE;
-        this.changeStatus(status,taskItem);
-
-    }
-    getDerivedStateFromProps(nextProps) {
-        if (nextProps.taskItem !== this.props.taskItem) {
-            let status = nextProps.taskItem.FINISH_STATE;
-            this.changeStatus(status,nextProps.taskItem);
-        }
-        return true
-    }
+    }    
     render() {
         const {taskItem, biologyInId} = this.props;
+        const item=taskItem.item;
         return (
-            <TouchableHighlight underlayColor="rgb(255, 255,255)" disabled={this.state.disabled} onPress={() => this.taskAction(taskItem, biologyInId)}>
+            <TouchableHighlight underlayColor="rgb(255, 255,255)" disabled={this.state.disabled} onPress={() => this.taskAction(item, biologyInId)}>
                 <View style={styles.taskItem}>
                     <View style={styles.taskItemLeft}>
                         <View style={styles.taskItemLeftTop}>
                             <Text style={styles.taskItemLeftTopText}>
-                                {taskItem.TASK_NAME}
+                                {item.TASK_NAME}
                             </Text>
                         </View>
                         <View style={styles.taskItemLeftBottom}>
                             <View style={styles.taskTime}>
                                 <Icon name='clock-o' size={24} color={'green'}></Icon>
-                                <Text style={styles.taskItemLeftBottomText}>{taskItem.START_TIME}--{taskItem.END_TIME}</Text>
+                                <Text style={styles.taskItemLeftBottomText}>{item.START_TIME}--{item.END_TIME}</Text>
                             </View>
                             {(this.state.switchStatus) ?
                                 <View style={styles.taskIsEnd}>
@@ -120,7 +113,7 @@ export default class TaskItem extends Component {
                     </View>
                     <View style={styles.taskItemRight}>
                         <Switch
-                            onValueChange={() => this.taskAction(taskItem, biologyInId)}
+                            onValueChange={() => this.taskAction(item, biologyInId)}
                             value={this.state.switchStatus}
                             disabled={this.state.disabled}
                         >

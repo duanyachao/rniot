@@ -23,43 +23,43 @@ export default class Dayage extends Component {
             
         }
     }
-    componentDidMount() {
-        this.pickerListener = DeviceEventEmitter.addListener('返回键', () => Picker.hide());
-    }
-    componentWillUnmount(){
-        Picker.hide()
-        this.pickerListener.remove();
-    }
     shouldComponentUpdate(nextProps, nextState) {
         const {callbackDayage} = this.props;
         if (nextProps.batch !== this.props.batch) {
             Picker.hide()
-            let headers = {
-                'X-Token': token,
-                'Content-Type': 'application/json'
-            };
-            let params = { "orgId": this.props.orgId, "yjCode": nextProps.batch };
-            Network.postJson(api.HOST + api.DAYAGES, params, headers, (res) => {
-                if (res.meta.success && res.data) {
-                    this.setState({
-                        dayAge: res.data,
-                        selectedIndex:res.data
-                    });
-                } else {
-                    this.setState({
-                        dayAge: null,
-                        selectedIndex:null
-                    });
+            if (nextProps.batch) {
+                let headers = {
+                    'X-Token': token,
+                    'Content-Type': 'application/json'
+                };
+                let params = { "orgId": this.props.orgId, "yjCode": nextProps.batch.yjcode };
+                Network.postJson(api.HOST + api.DAYAGES, params, headers, (res) => {
+                    if (res.meta.success && res.data) {
+                        this.setState({
+                            dayAge: res.data,
+                            selectedIndex:res.data
+                        });
+                    }
+                    callbackDayage(this.state.selectedIndex);
+                })
                 
-                }
-                callbackDayage(this.state.dayAge);
-            })
+            } else {
+                this.setState({
+                    dayAge: null,
+                    selectedIndex:null
+                });    
+            }
+            
+            
+            
         }
         return true
+        
     }
     selectDayAge() {
+        const {dayAge,selectedIndex}=this.state;
         let dayageLists = [];
-        for (var index = this.state.dayAge; index >= 1; index--) {
+        for (var index = dayAge; index >= 1; index--) {
             dayageLists.push(index)
         }
         Picker.init({
@@ -67,25 +67,23 @@ export default class Dayage extends Component {
             pickerCancelBtnText:'取消',
             pickerTitleText:'选择日龄',
             pickerData: dayageLists,
-            selectedValue:[(this.state.selectedIndex)],
-            onPickerConfirm: dayage => {
+            selectedValue:[selectedIndex],
+            onPickerConfirm: data => {
+                const dayAge=parseInt(data);
                 const {callbackDayage} = this.props;
-                dayageLists.forEach(function(element,index) {
-                    if(element==dayage){
-                        this.setState({
-                            selectedIndex:(dayageLists.length-index) 
-                        })
-                    }
-                }, this);
-                callbackDayage(this.state.selectedIndex);
+                this.setState({
+                    selectedIndex:dayAge   
+                })
+                callbackDayage(dayAge);
             }
 
         });
-        Picker.show();
+        Picker.toggle();
         
         
     }
     render() {
+        const {dayAge,selectedIndex}=this.state;
         return (
             <View style={pickerStyle.container}>
                 <View style={pickerStyle.pickerTip}>
@@ -97,7 +95,7 @@ export default class Dayage extends Component {
                         underlayColor="rgb(255, 255,255)"
                         onPress={() => this.selectDayAge()}>
                         <View style={pickerStyle.picker}>
-                            <Text style={pickerStyle.pickered}>{this.state.selectedIndex}</Text>
+                            <Text style={pickerStyle.pickered}>{selectedIndex}</Text>
                             <Icon name='angle-right' size={24} color='#8c8c8c'></Icon>
                         </View>
                     </TouchableHighlight> : <View style={pickerStyle.nopicker}><Text style={pickerStyle.nopickerText}>暂无日龄</Text></View>}

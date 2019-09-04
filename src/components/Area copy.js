@@ -1,103 +1,120 @@
 /**
  * Created by duanyachao on 17/2/24.
  * 生产区域界面
- * 优化2019年9月3日
  */
 import React, { Component } from 'react';
-import { TouchableHighlight, StyleSheet, FlatList, Modal, View, Text } from 'react-native';
+import {
+    InteractionManager,
+    TouchableOpacity,
+    TouchableHighlight,
+    TouchableWithoutFeedback,
+    StyleSheet,
+    Dimensions,
+    FlatList,
+    Modal,
+    Picker,
+    Image,
+    View,
+    Text
+} from 'react-native';
 import api from './../api';
 import { Network, toastShort } from './../utils';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { theme } from '../common';
-import { pickerStyle } from '../common/theme';
+import {pickerStyle} from '../common/theme';
 export default class Area extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedIndex: 0,
+            selectIndex:null,
+            selectArea:null,
             modalVisible: false,
-            areaData: null
+            areaData:null
         }
     }
-    requestAreaList = () => {
+    UNSAFE_componentWillMount() {
+        const {callbackParent} = this.props;
         let headers = {
             'Content-Type': 'application/json',
             'X-Token': token
         }
         Network.get(api.REGIONSV2, '', headers, (res) => {
+            // console.info(res)
             if (res.meta.success) {
-                this.setState({
-                    areaData: res.data,
-                })
-                this.props.callbackParent(res.data[0]);
-            }
+                    let ret=res.data;
+                    let selectIndex=(!this.state.selectIndex)?0:this.state.selectIndex;
+                    this.setState({
+                        selectIndex:selectIndex,
+                        selectArea:ret[selectIndex],
+                        areaData: ret
+                    })
+                    callbackParent(ret[selectIndex].orgId,ret[selectIndex].terminalId,ret[selectIndex].terminalSerialNum) 
+                  }
         })
-    }
-    UNSAFE_componentWillMount() {
-        this.requestAreaList()
 
     }
-    selectArea = (item, index) => {
-        this.setState({
-            selectedIndex: index,
-            modalVisible: !this.state.modalVisible
-        });
-        this.props.callbackParent(item);
-    }
     renderItem(rowData) {
-        const { item, index } = rowData;
-        const { selectedIndex } = this.state;
+        const {item,index}=rowData;
         return (
-            <TouchableHighlight underlayColor="rgb(255, 255,255)" onPress={() => this.selectArea(item, index)}>
+            <TouchableHighlight underlayColor="rgb(255, 255,255)" onPress={() =>{this.selectArea(item,index)}}>
                 <View style={styles.areaListItem}>
                     <Text style={styles.areaListItemText}>{item.orgName}</Text>
                     <View style={styles.gxIcon}>
-                        {(selectedIndex == index) ? <Icon name='check-circle' size={18} color={theme.iconColor}></Icon> :
-                            <Icon name='circle-thin' size={18} color={"#eee"}></Icon>
-                        }
+                        {(this.state.selectIndex==index) ?  <Icon name='check-circle' size={18} color={theme.iconColor}></Icon>:
+                        <Icon name='circle-thin' size={18} color={"#eee"}></Icon>
+                    }
                     </View>
                 </View>
             </TouchableHighlight>
         )
     }
+    selectArea(item, index) {
+        const {callbackParent}=this.props;
+        this.setState({
+            selectArea:item,
+            selectIndex: index,
+            modalVisible: !this.state.modalVisible
+        });
+        callbackParent(item.orgId,item.terminalId,item.terminalSerialNum)   
+    }
     render() {
-        const { areaData, modalVisible, selectedIndex } = this.state;
+        let selectIndex=this.state.selectIndex;
+        let selectArea=this.state.selectArea;
         return (
             <View style={pickerStyle.container}>
                 <View style={pickerStyle.pickerTip}>
                     <Icon name='map-signs' size={18} color={theme.iconColor}></Icon>
                     <Text style={pickerStyle.pickerTipText}>生产区域</Text>
                 </View>
-                {areaData && areaData.length > 0 ?
+                {this.state.areaData ?
                     <TouchableHighlight
                         underlayColor="rgb(255, 255,255)"
-                        onPress={() => this.setState({ modalVisible: !modalVisible })}>
+                        onPress={() => this.setState({ modalVisible: !this.state.modalVisible })}>
                         <View style={pickerStyle.picker}>
-                            <Text style={pickerStyle.pickered}>{areaData[selectedIndex].orgName}</Text>
+                            <Text style={pickerStyle.pickered}>{(selectArea)?selectArea.orgName:null}</Text>
                             <Icon name='angle-right' size={24} color='#8c8c8c'></Icon>
                         </View>
                     </TouchableHighlight>
-                    : <View style={pickerStyle.nopicker}><Text style={pickerStyle.nopickerText}>暂无区域</Text></View>
+                    : <View></View>
                 }
                 <Modal
                     animationType={"fade"}
                     transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => this.setState({ modalVisible: !modalVisible })}>
-                    <TouchableHighlight style={{ flex: 1 }} onPress={() => this.setState({ modalVisible: !modalVisible })}>
+                    visible={this.state.modalVisible}
+                    onRequestClose={() => this.setState({ modalVisible: !this.state.modalVisible })}>
+                    <TouchableHighlight style={{ flex: 1 }} onPress={() => this.setState({ modalVisible: !this.state.modalVisible })}>
                         <View style={styles.areaListWrapper}>
                             <View style={styles.areaList}>
                                 <FlatList
-                                    data={areaData}
+                                    data={this.state.areaData}
                                     keyExtractor={(item, index) => index.toString()}
-                                    style={styles.listViewStyle}
-                                    renderItem={(rowData) => this.renderItem(rowData)} />
-
+                                    style={styles.listViewStyle} 
+                                    renderItem={(rowData)=>this.renderItem(rowData)}/>
+                               
                             </View>
                         </View>
                     </TouchableHighlight>
                 </Modal>
-
             </View>
         )
 

@@ -1,7 +1,7 @@
 //import liraries
 import React, { Component } from 'react';
 import {
-    ListView,
+    FlatList,
     View,
     Text,
     StyleSheet,
@@ -17,80 +17,49 @@ export default class TaskList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            dataSource: new ListView.DataSource({
-                rowHasChanged: (row1, row2) => row1 !== row2,
-            })
+            taskData:null
         }
     }
-    getDerivedStateFromProps(nextProps) {
-        if (!nextProps.biologyInId) {
-            this.setState({
-                dataSource: this.state.dataSource.cloneWithRows([]),
-            })
-        } else {
-            let headers = {
-                'X-Token': token,
-                'Content-Type': 'application/json'
-            };
-            let params = { "biologyInId": nextProps.biologyInId, "dayAge": nextProps.dayAge };
-            Network.postJson(api.HOST + api.TASKLIST, params, headers, (res) => {
-                if (res.meta.success) {
-                    this.setState({
-                        dataSource: this.state.dataSource.cloneWithRows(res.data),
-                    })
-                }
-            })
+    
+    static getDerivedStateFromProps(nextProps,prevState) {
+        const { taskData }=nextProps;
+        if (taskData !== prevState.taskData) {
+            // console.info('改变',taskData,prevState.taskData)
+            return{
+                taskData
+            }
         }
-
+        return null
     }
-    componentDidMount() {
-
-    }
-    renderItem(rowData, sectionID, rowID) {
-        
+    renderTaskList=(data)=>{
+        const keyExtractor = (item, index) =>index.toString();
+        const renderItem =(rowData, sectionID, rowID)=> {
+            return (
+                <TaskItem taskItem={rowData} biologyInId={this.props.biologyInId}/>
+            )
+        }
+        const renderHeader=()=> {
+            return (
+                <View style={styles.taskTitle}>
+                    <Icon name='bars' size={24} color={theme.iconColor}></Icon>
+                    <Text style={styles.taskTitleText}>任务列表</Text>
+                </View>
+            )
+        }
+        const itemH = 100;
         return (
-            <TaskItem taskItem={rowData} biologyInId={this.props.biologyInId}></TaskItem>
-        )
-    }
-    renderHeader() {
-        return (
-            <View style={styles.taskTitle}>
-                <Icon name='bars' size={24} color={theme.iconColor}></Icon>
-                <Text style={styles.taskTitleText}>任务列表</Text>
-            </View>
+            <FlatList
+                data={data}
+                getItemLayout={(item, index) => ({ length: itemH, offset: itemH * index, index })}
+                keyExtractor={keyExtractor}
+                renderItem={(item) =>renderItem(item)} />
         )
     }
     render() {
         return (
-            (this.state.dataSource && this.state.dataSource._cachedRowCount > 0) ?
-                <ListView
-                    initialListSize={1}
-                    dataSource={this.state.dataSource}
-                    renderHeader={() => this.renderHeader()}
-                    renderRow={(rowData, sectionID, rowID) => this.renderItem(rowData, sectionID, rowID)}
-                    style={styles.listViewStyle}
-                    onEndReachedThreshold={10}
-                    enableEmptySections={true}
-                ></ListView>
-                : <View style={theme.nodata}><Text>无任务</Text></View>
+            this.renderTaskList(this.state.taskData)
         )
-
-
 
     }
 }
 
-// define your styles
-const styles = StyleSheet.create({
-    taskTitle: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        paddingHorizontal: 10,
-        paddingVertical:6,
-    },
-    taskTitleText: {
-        paddingLeft: 10,
-
-    },
-    
-});

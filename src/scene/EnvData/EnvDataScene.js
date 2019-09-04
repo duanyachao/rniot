@@ -21,20 +21,16 @@ export default class EnvDataScene extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            orgId: null,
-            terminalId: null,
-            terminalSerialNum: null,
+            selectedArea:null,
             envDataList: null,
             infoTime:null,
             bTypeName:null,
             noWarn: true
         }
     }
-    areaChange(orgId, terminalId, terminalSerialNum) {
+    areaChange(item) {
         this.setState({
-            orgId: orgId,
-            terminalId: terminalId,
-            terminalSerialNum: terminalSerialNum
+            selectedArea:item
         })
         let evndataUrl = api.HOST + api.ENVDATA;
         let headers = {
@@ -42,9 +38,9 @@ export default class EnvDataScene extends Component {
             'X-Token': token
         }
         let params = {
-            "orgId": orgId,
-            "terminalId":terminalId,
-            "serialNum":terminalSerialNum,
+            "orgId": item.orgId,
+            "terminalId":item.terminalId,
+            "serialNum":item.terminalSerialNum,
             
         }
         //对象转Map
@@ -105,7 +101,7 @@ export default class EnvDataScene extends Component {
                     keyExtractor={this.keyExtractor}
                     onEndReached={this.onEndReached}
                     onEndReachedThreshold={1}
-                    onRefresh={() => this.areaChange(this.state.orgId, this.state.terminalId, this.state.terminalSerialNum)}
+                    onRefresh={() => this.areaChange(this.state.selectedArea)}
                     refreshing={false}
                     ref="EnvDataInfoList"
                     ListFooterComponent={this.renderFlistFooter}
@@ -114,11 +110,9 @@ export default class EnvDataScene extends Component {
         )
     } 
     componentDidMount() {
-        // console.info(bTypeName)
         storage.load({
             key:'userInfo'
         }).then((ret)=>{
-            // console.info(JSON.stringify(ret))
             this.setState({
                 bTypeName:ret.bTypeName
             })
@@ -139,7 +133,6 @@ export default class EnvDataScene extends Component {
         this.warnListener = DeviceEventEmitter.addListener('报警状态', (msg) => {
             // console.info(msg)
             (msg.meta.success && msg.data && msg.data.status !== 0) ? this.setState({ noWarn: false }) : null
-
         });
     }
     componentWillUnmount() {
@@ -149,8 +142,7 @@ export default class EnvDataScene extends Component {
         return (
             <View style={styles.container}>
                 <WeatherDataList/>
-                <Area callbackParent={(orgId, terminalId, terminalSerialNum) => this.areaChange(orgId, terminalId, terminalSerialNum)}></Area>
-                
+                <Area callbackParent={(item) => this.areaChange(item)}></Area>
                 {this.state.envDataList ? this.renderEnvDataInfoList(this.state.envDataList) : <View style={styles.noWarnWrapper}><Text>暂无数据</Text></View>}
             </View>
         );

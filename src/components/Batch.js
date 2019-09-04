@@ -19,18 +19,12 @@ export default class Bacth extends Component {
         super(props)
         this.state = {
             batchs: null,
-            batch:null,
-            biologyInId:null,
-            batchIndex:null
+            selectedIndex:null
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
         const {callbackBacth} = this.props;
         if (nextProps.orgId !== this.props.orgId) {
-            // this.setState({
-            //     batchIndex:null,
-            //     batch:null    
-            // })
             Picker.hide()
             let headers = {
                 'X-Token': token
@@ -40,77 +34,61 @@ export default class Bacth extends Component {
                 if (res.meta.success && res.data.length > 0) {
                     this.setState({
                         batchs: res.data,
-                        batch:res.data[0].yjcode,
-                        batchIndex:0,
-                        biologyInId:res.data[0].id
+                        selectedIndex:0
                     })
-                } else {
+                    callbackBacth(this.state.batchs[0]);
+                }else {
                     this.setState({
-                        batchs: null,
-                        batch:null,
-                        batchIndex:null,
-                        biologyInId:null
+                        batchs: null
                     })
+                    callbackBacth();
                 }
-            callbackBacth(this.state.batch,this.state.biologyInId);    
+                
             })
         }
         return true
     }
-    componentDidMount() {
-        this.pickerListener = DeviceEventEmitter.addListener('返回键', () => Picker.hide());
-    }
-    componentWillUnmount(){
-        Picker.hide()
-        this.pickerListener.remove();
-    }
     selectBtach() {
+        const {batchs,selectedIndex}=this.state;
         let batchLists = [];
-        for (var index = 0; index < this.state.batchs.length; index++) {
-            batchLists.push(this.state.batchs[index].yjcode)
-
+        for (var index = 0; index < batchs.length; index++) {
+            batchLists.push(batchs[index].yjcode)
         }
         Picker.init({
             pickerConfirmBtnText: '确定',
             pickerCancelBtnText:'取消',
             pickerTitleText:'选择批次',
             pickerData: batchLists,
-            selectedValue:[(this.state.batchIndex)?batchLists[this.state.batchIndex]:batchLists[0]],
-            onPickerConfirm: batch => {
-                let biologyInId,batchIndex;
+            selectedValue:[(selectedIndex)?batchLists[selectedIndex]:batchLists[0]],
+            onPickerConfirm: data => {
                 const {callbackBacth} = this.props;
-                this.state.batchs.forEach(function(element,index) {
-                    if(element.yjcode==batch.toString()){
-                        biologyId=element.id;
-                        batchIndex=index;
+                batchs.forEach((element,index)=>{
+                    if(element.yjcode==data){
                         this.setState({
-                            batchIndex:batchIndex,
-                            batch:element.yjcode,
-                            biologyInId:biologyId    
+                            selectedIndex:index,
                         })
                     }
-                }, this);
-                callbackBacth(this.state.batch,this.state.biologyInId); 
+                });
+                callbackBacth(batchs[this.state.selectedIndex]); 
             }
 
         });
-        Picker.show();
+        Picker.toggle()
     }
     render() {
-        const batchs = this.state.batchs;
-        const batch=this.state.batch;
+        const {batchs,selectedIndex}=this.state;
         return (
             <View style={pickerStyle.container}>
                 <View style={pickerStyle.pickerTip}>
                     <Icon name='list' size={18} color={theme.iconColor}></Icon>
                     <Text style={pickerStyle.pickerTipText}>生产批次</Text>
                 </View>
-                {(batchs && batchs.length !== 0) ?
+                {(batchs && batchs.length>0) ?
                     <TouchableHighlight
                         underlayColor="rgb(255, 255,255)"
                         onPress={() => this.selectBtach()}>
                         <View style={pickerStyle.picker}>
-                            <Text style={pickerStyle.pickered}>{batch}</Text>
+                            <Text style={pickerStyle.pickered}>{batchs[selectedIndex].yjcode}</Text>
                             <Icon name='angle-right' size={24} color='#8c8c8c'></Icon>
                         </View>
                     </TouchableHighlight> : <View style={pickerStyle.nopicker}><Text style={pickerStyle.nopickerText}>暂无批次</Text></View>}
