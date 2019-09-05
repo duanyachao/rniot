@@ -21,16 +21,16 @@ export default class dayItems extends Component {
             remark: null
         }
     }
-    getDerivedStateFromProps(nextProps) {
-        if (nextProps.data !== this.props.data) {
-            this.setState({
-                editable: false,
-                editText: null,
-                type: null,
-            })
-        }
-        return true
-    }
+    // static getDerivedStateFromProps(nextProps,prevState) {
+    //     if (nextProps.data !== this.props.data) {
+    //         return {
+    //             editable: false,
+    //             editText: null,
+    //             type: null,
+    //         }
+    //     }
+    //     return null
+    // }
     addAction(biologyInId, dayAge, id) {
         let averageWeight, dayDeaths, dayFodders, drugUsage, feedMeatRate;
         const {callRefreash} = this.props;
@@ -95,7 +95,6 @@ export default class dayItems extends Component {
         const {data, biologyInId, dayAge, actType, id} = this.props;
         return (
             <View style={styles.container}>
-                {(data) ?
                     <View style={styles.content}>
                         <View style={styles.lrfsTip}>
                             <View style={{ flexDirection: 'row' }}>
@@ -105,7 +104,7 @@ export default class dayItems extends Component {
 
                             <View style={styles.lrfsTipBtns}>
                                 <Button
-                                    btnStyle={[styles.lrfsTipBtnStyle, styles.addBtnStyle]}
+                                    btnStyle={styles.addBtnStyle}
                                     btnTextStyle={styles.btnTextStyle}
                                     title={'新增'}
                                     onPress={() => this.setState({
@@ -120,7 +119,7 @@ export default class dayItems extends Component {
                                     })}>
                                 </Button>
                                 <Button
-                                    btnStyle={[styles.lrfsTipBtnStyle, styles.modifyBtnStyle, (actType == 1) ? styles.btnDisable : null]}
+                                    btnStyle={(actType == 1)?styles.btnDisable:styles.modifyBtnStyle}
                                     disabled={(actType == 1) ? true : false}
                                     btnTextStyle={styles.btnTextStyle}
                                     title={'修改'}
@@ -213,21 +212,20 @@ export default class dayItems extends Component {
                         {(this.state.editable) ?
                             <View style={styles.saveBtnGroup}>
                                 <Button
-                                    btnStyle={[styles.lrfsTipBtnStyle, styles.updateBtnStyle]}
+                                    btnStyle={styles.updateBtnStyle}
                                     btnTextStyle={styles.saveBtnTextStyle}
                                     title='保存'
                                     onPress={() => this.addAction(biologyInId, dayAge, id)}
                                 >
                                 </Button>
                                 <Button
-                                    btnStyle={[styles.lrfsTipBtnStyle, styles.cancelBtnStyle]}
+                                    btnStyle={styles.cancelBtnStyle}
                                     btnTextStyle={styles.saveBtnTextStyle}
                                     title='取消' onPress={() => this.setState({ editable: false,editText:null })}>
                                 </Button>
                             </View>
                             : null}
                     </View>
-                    : <View style={theme.nodata}><Text>无数据</Text></View>}
             </View>
         )
 
@@ -260,16 +258,28 @@ const styles = StyleSheet.create({
 
     },
     btnDisable: {
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginHorizontal: 4,
+        borderRadius: 6,
         backgroundColor: '#ccc'
     },
     modifyBtnStyle: {
-        backgroundColor: 'red'
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginHorizontal: 4,
+        borderRadius: 6,
+        backgroundColor:theme.btnDanger
     },
     btnTextStyle: {
         color: '#fff'
     },
     addBtnStyle: {
-        backgroundColor: 'green'
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginHorizontal: 4,
+        borderRadius: 6,
+        backgroundColor:theme.theme
     },
     dayItem: {
         height: 45,
@@ -314,10 +324,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     updateBtnStyle: {
-        backgroundColor: 'blue'
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginHorizontal: 4,
+        borderRadius: 6,
+        backgroundColor:theme.theme
     },
     cancelBtnStyle: {
-        backgroundColor: 'green'
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginHorizontal: 4,
+        borderRadius: 6,
+        backgroundColor:theme.btnDanger
     },
     saveBtnTextStyle: {
         color: '#fff'

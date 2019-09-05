@@ -76,7 +76,7 @@ export default class TaskScene extends Component {
         }  
     }
     render() {
-        const { orgId,batch,biologyInId,dayAge,taskData}=this.state;
+        const { orgId,batch,taskData}=this.state;
         // console.info(batch)
         return (
             <View style={styles.container}>
@@ -87,7 +87,7 @@ export default class TaskScene extends Component {
                     <Icon name='bars' size={24} color={theme.iconColor}></Icon>
                     <Text style={styles.taskTitleText}>任务列表</Text>
                 </View> 
-                {(taskData && taskData.length>0 )?<TaskList taskData={taskData}></TaskList>:<View style={theme.nodata}><Text>无任务</Text></View>}
+                {(taskData && taskData.length>0 )?<TaskList taskData={taskData} biologyInId={batch.biologyId}></TaskList>:<View style={theme.nodata}><Text>无任务</Text></View>}
             </View>
         );
     }
@@ -103,6 +103,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 10,
         paddingVertical:6,
+        backgroundColor:'#fff'
+        
     },
     taskTitleText: {
         paddingLeft: 10,

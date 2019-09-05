@@ -20,6 +20,9 @@ import ProductTotal from './ProductTotal';
 import DayItems from './DayItems';
 // create a component
 export default class ProductScene extends Component {
+    static navigationOptions = {
+        header: <Header title='生产管理'></Header>
+    }
     constructor(props) {
         super(props);
         this.state = {
@@ -32,25 +35,37 @@ export default class ProductScene extends Component {
             id:null
         }
     }
-    areaChange(newState) {
+    areaChange(item) {
         this.setState({
-            orgId: newState
+            orgId: item.orgId
         })
     }
-    batchChange(batch, biologyInId, batchIndex) {
-        this.setState({
-            batch: batch,
-            biologyInId: biologyInId,
-
-        })
-    }
-    dayAgeChange(newState) {
-        this.setState({
-            dayAge: newState
-        })
-    }
-    componentDidMount() {
-
+    batchChange(batch) {
+        if (batch) {
+            this.setState({
+                batch: batch,
+                biologyInId: batch.id
+            })    
+        } else {
+            this.setState({
+                batch: null,
+                biologyInId: null,
+                currentDayTotalData:null
+            })     
+        }
+    }   
+    dayAgeChange(dayAge){
+        if (dayAge) {
+            this.setState({
+                dayAge: dayAge
+            })
+            this.requestData(this.state.biologyInId, this.state.dayAge);    
+        } else {
+            this.setState({
+                dayAge:null,
+                currentDayTotalData:null
+            })     
+        }
     }
     requestData(biologyInId, dayAge) {
         let headers = {
@@ -59,6 +74,7 @@ export default class ProductScene extends Component {
         };
         let params = { "biologyInId": biologyInId, "dayAge": dayAge };
         Network.postJson(api.HOST + api.DAYINFO, params, headers, (res) => {
+            console.info(res)
             if (res.meta.success && res.data.length>0) {
                 let result=res.data;
                 let len=result.length;
@@ -76,37 +92,36 @@ export default class ProductScene extends Component {
             }
         })
     }
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextState.dayAge !== this.state.dayAge) {
-            this.requestData(nextState.biologyInId, nextState.dayAge);
-
-        }
-
-        return true
-    }
+    // shouldComponentUpdate(nextProps, nextState) {
+    //     if (nextState.dayAge !== this.state.dayAge) {
+    //         this.requestData(nextState.biologyInId, nextState.dayAge);
+    //     }
+    //     return true
+    // }
     render() {
+        const { orgId,batch,biologyInId,currentDayTotalData,dayAge,actType,id}=this.state;
+
         return (
             <View style={styles.container}>
-                <ScrollView >
-                <Area callbackParent={(newState) => this.areaChange(newState)}></Area>
-                <Batch
-                    orgId={this.state.orgId}
-                    callbackBacth={(batch, biologyInId) => this.batchChange(batch, biologyInId)}>
-                </Batch>
-                {(this.state.currentDayTotalData)?<ProductTotal totalData={this.state.currentDayTotalData}></ProductTotal>:null}
+                <Area callbackParent={(item) => this.areaChange(item)}></Area>
+                <Batch orgId={orgId} callbackBacth={(batch) => this.batchChange(batch)}></Batch>
+                {(currentDayTotalData)?<ProductTotal totalData={currentDayTotalData}></ProductTotal>:null}
                 <View style={styles.sjlrTit}>
                     <Icon name='pencil' size={18} color={theme.iconColor}></Icon>
                     <Text style={styles.sjlrText}>数据录入</Text>
                 </View>
-                <Dayage
-                    orgId={this.state.orgId}
-                    batch={this.state.batch}
-                    callbackDayage={(newState) => this.dayAgeChange(newState)}>
-                </Dayage>
-                
-                <DayItems callRefreash={(biologyInId,dayAge)=>this.requestData(biologyInId, dayAge)} data={this.state.currentDayTotalData} biologyInId={this.state.biologyInId} dayAge={this.state.dayAge} actType={this.state.actType} id={this.state.id}></DayItems>
-            </ScrollView>
+                <Dayage orgId={orgId} batch={batch} callbackDayage={(dayAge) => this.dayAgeChange(dayAge)}></Dayage>
+                {(currentDayTotalData)?<ScrollView ><DayItems 
+                    callRefreash={(biologyInId,dayAge)=>this.requestData(biologyInId, dayAge)} 
+                    data={currentDayTotalData} 
+                    biologyInId={biologyInId} 
+                    dayAge={dayAge} 
+                    actType={actType} 
+                    id={id}>
+                </DayItems></ScrollView>:<View style={theme.nodata}><Text>无数据</Text></View>}
+            
             </View>
+            
         );
     }
 }
@@ -118,11 +133,13 @@ const styles = StyleSheet.create({
     },
     sjlrTit: {
         flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        height: 44,
+        paddingLeft: 10,
+        paddingRight: 10,
+        backgroundColor: '#fff',
         borderBottomColor: '#f0f0f0',
-        borderBottomWidth: screen.onePixel,
+        borderBottomWidth: 5,
+        alignItems: 'center'
     },
     sjlrText: {
         paddingLeft: 10,

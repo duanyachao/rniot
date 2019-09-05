@@ -11,18 +11,46 @@ export default class TaskItem extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            taskItem:null    
+            taskItem:null,
+            biologyInId:null,
+            switchStatus: null,
+            taskStatus: null,
+            disabled: null    
         }
     }
     static getDerivedStateFromProps(nextProps,prevState) {
-        const {taskItem}=nextProps;
+        const {taskItem,biologyInId}=nextProps;
         if (taskItem !== prevState.taskItem) {
-            return taskItem
+            switch (taskItem.item.FINISH_STATE) {
+                case -1:
+                case 1:
+                    return{
+                        switchStatus: true,
+                        taskStatus: '未完成',
+                        disabled: false,
+                        taskItem,
+                        biologyInId
+                    }
+                    break;
+                case 0:
+                    return {
+                        switchStatus: false,
+                        taskStatus: `完成(${taskItem.item.FINISH_TIME})`,
+                        disabled: true,
+                        taskItem,
+                        biologyInId
+                    }
+                    break;
+                default:
+                    break;
+            }
+            
         }
         return null
     }
-    taskAction(taskItem, biologyInId) {
-        if (taskItem.FINISH_STATE == 0) {
+    taskAction(item, biologyInId) {
+        console.info(biologyInId)
+        if (item.FINISH_STATE == 0) {
             return
         } else {
             Alert.alert(
@@ -35,7 +63,7 @@ export default class TaskItem extends Component {
                                 'X-Token': token,
                                 'Content-Type': 'application/json'
                             };
-                            let params = { "biologyInId": biologyInId, "status": 0, "taskId": taskItem.ID };
+                            let params = { "biologyInId": biologyInId, "status": 0, "taskId": item.ID };
                             Network.postJson(api.HOST + api.TASKUPDATE, params, headers, (res) => {
                                 // console.info(res.data)
                                 if (res.meta.success) {
@@ -60,33 +88,12 @@ export default class TaskItem extends Component {
 
 
         }
-    }
-    changeStatus(status,taskItem) {
-        switch (status) {
-            case -1:
-            case 1:
-                this.setState({
-                    switchStatus: true,
-                    taskStatus: '未完成',
-                    disabled: false
-                })
-                break;
-            case 0:
-                this.setState({
-                    switchStatus: false,
-                    taskStatus: `完成(${taskItem.FINISH_TIME})`,
-                    disabled: true
-                })
-                break;
-            default:
-                break;
-        }
-    }    
+    }  
     render() {
-        const {taskItem, biologyInId} = this.props;
+        const {taskItem,biologyInId} = this.state;
         const item=taskItem.item;
         return (
-            <TouchableHighlight underlayColor="rgb(255, 255,255)" disabled={this.state.disabled} onPress={() => this.taskAction(item, biologyInId)}>
+            <TouchableHighlight underlayColor="rgb(255, 255,255)" disabled={this.state.disabled} onPress={() => this.taskAction(item,biologyInId)}>
                 <View style={styles.taskItem}>
                     <View style={styles.taskItemLeft}>
                         <View style={styles.taskItemLeftTop}>
@@ -120,8 +127,7 @@ export default class TaskItem extends Component {
                         </Switch>
                     </View>
                 </View>
-            </TouchableHighlight>
-        );
+            </TouchableHighlight>);
     }
 }
 
@@ -133,8 +139,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
-        // borderBottomWidth: screen.onePixel,
-        // borderBottomColor: '#f0f0f0',
+        borderBottomWidth: screen.onePixel,
+        borderBottomColor: '#f0f0f0',
         marginBottom:1
     },
     taskItemLeft: {

@@ -17,40 +17,31 @@ export default class TaskList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            taskData:null
+            taskData:null,
+            biologyInId:null
         }
     }
-    
     static getDerivedStateFromProps(nextProps,prevState) {
-        const { taskData }=nextProps;
+        const { taskData,biologyInId }=nextProps;
         if (taskData !== prevState.taskData) {
-            // console.info('改变',taskData,prevState.taskData)
+            // console.info(taskData)
             return{
-                taskData
+                taskData,
+                biologyInId
             }
         }
         return null
     }
     renderTaskList=(data)=>{
         const keyExtractor = (item, index) =>index.toString();
-        const renderItem =(rowData, sectionID, rowID)=> {
+        const renderItem =(item)=> {
             return (
-                <TaskItem taskItem={rowData} biologyInId={this.props.biologyInId}/>
+                <TaskItem taskItem={item} biologyInId={this.state.biologyInId}/>
             )
         }
-        const renderHeader=()=> {
-            return (
-                <View style={styles.taskTitle}>
-                    <Icon name='bars' size={24} color={theme.iconColor}></Icon>
-                    <Text style={styles.taskTitleText}>任务列表</Text>
-                </View>
-            )
-        }
-        const itemH = 100;
         return (
             <FlatList
                 data={data}
-                getItemLayout={(item, index) => ({ length: itemH, offset: itemH * index, index })}
                 keyExtractor={keyExtractor}
                 renderItem={(item) =>renderItem(item)} />
         )

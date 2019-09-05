@@ -34,6 +34,7 @@ export default class Dayage extends Component {
                 };
                 let params = { "orgId": this.props.orgId, "yjCode": nextProps.batch.yjcode };
                 Network.postJson(api.HOST + api.DAYAGES, params, headers, (res) => {
+                    // console.info(res)
                     if (res.meta.success && res.data) {
                         this.setState({
                             dayAge: res.data,
@@ -47,7 +48,8 @@ export default class Dayage extends Component {
                 this.setState({
                     dayAge: null,
                     selectedIndex:null
-                });    
+                });
+                callbackDayage();    
             }
             
             

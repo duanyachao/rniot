@@ -7,12 +7,15 @@ export default {
     tabIconsize:24,
     tabFontSize:12,
     iconColor:'rgb(55,179,117)',
+    btnYellow:'#fd9b2a',
+    btnDanger:'#ff4d4f',
     nodata: {
         display: 'flex',
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
+        backgroundColor:'#f3f3f3'
 
     },
 }
